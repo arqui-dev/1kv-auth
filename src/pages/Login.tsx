@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 
@@ -12,11 +12,16 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<StatusMessage>({ type: "idle" });
 
+  const queryParams = useMemo(() => new URLSearchParams(window.location.search), []);
+  const redirectUri = queryParams.get("redirect_uri");
+  const handshakeState = queryParams.get("state");
+  const isDesktopFlow = Boolean(redirectUri && handshakeState);
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setStatus({ type: "loading", text: "Entrando..." });
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
     });
@@ -24,6 +29,61 @@ const LoginPage = () => {
     if (error) {
       setStatus({ type: "error", text: error.message });
       return;
+    }
+
+    if (redirectUri && handshakeState) {
+      const session = data.session;
+      if (!session) {
+        setStatus({
+          type: "error",
+          text: "Não foi possível recuperar a sessão do Supabase. Tente novamente."
+        });
+        return;
+      }
+
+      setStatus({
+        type: "loading",
+        text: "Conectando com o aplicativo..."
+      });
+
+      const payload = {
+        state: handshakeState,
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
+        expires_at: session.expires_at ?? null,
+        expires_in: session.expires_in ?? null,
+        token_type: session.token_type,
+        user: session.user
+      };
+
+      try {
+        const response = await fetch(redirectUri, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          const errorBody = await response.text();
+          throw new Error(errorBody || "Falha ao entregar sessão para o aplicativo.");
+        }
+
+        setStatus({
+          type: "success",
+          text: "Login concluído. Retorne ao aplicativo desktop para continuar."
+        });
+        setPassword("");
+        return;
+      } catch (handshakeError) {
+        const message =
+          handshakeError instanceof Error
+            ? handshakeError.message
+            : "Erro inesperado ao enviar a sessão para o aplicativo.";
+        setStatus({ type: "error", text: message });
+        return;
+      }
     }
 
     setStatus({ type: "success", text: "Login realizado com sucesso!" });
@@ -39,6 +99,12 @@ const LoginPage = () => {
             Cadastre-se
           </Link>
         </p>
+        {isDesktopFlow && (
+          <p className="mt-2 text-sm text-slate-500">
+            Após a autenticação, a sessão será enviada automaticamente para o
+            aplicativo desktop.
+          </p>
+        )}
 
         <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
           <label className="block">
