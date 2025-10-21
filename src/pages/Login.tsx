@@ -1,5 +1,5 @@
 import { FormEvent, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 
 type StatusMessage = {
@@ -11,6 +11,7 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<StatusMessage>({ type: "idle" });
+  const navigate = useNavigate();
 
   const queryParams = useMemo(() => new URLSearchParams(window.location.search), []);
   const redirectUri = queryParams.get("redirect_uri");
@@ -87,6 +88,11 @@ const LoginPage = () => {
     }
 
     setStatus({ type: "success", text: "Login realizado com sucesso!" });
+
+    // Redirect to success page after short delay
+    setTimeout(() => {
+      navigate("/success");
+    }, 1500);
   };
 
   return (
