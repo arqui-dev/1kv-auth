@@ -76,6 +76,11 @@ const LoginPage = () => {
           text: "Login concluído. Retorne ao aplicativo desktop para continuar."
         });
         setPassword("");
+
+        // Redirect to success page after short delay
+        setTimeout(() => {
+          navigate("/success");
+        }, 1500);
         return;
       } catch (handshakeError) {
         const message =
