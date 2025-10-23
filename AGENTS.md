@@ -37,6 +37,16 @@ This document helps future contributors—human or AI—work consistently within
 - Enable automatic HTTPS (default on Vercel) and verify redirects for protected routes.
 - Monitor build logs; keep dependencies patched to prevent deployment warnings.
 
+## Commit Message Guidelines
+- Use **one-line conventional commits** format: `type: description`
+- Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+- Keep descriptions concise and imperative (e.g., "add login redirect", not "added login redirect")
+- Do NOT use multi-line commit messages with body paragraphs
+- Examples:
+  - `feat: add success page redirect after login`
+  - `fix: correct session storage in desktop flow`
+  - `docs: update authentication flow diagram`
+
 ## Workflow Checklist
 1. Sync with `main` and confirm a clean working tree.
 2. Implement changes with attention to the practices above.
