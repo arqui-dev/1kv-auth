@@ -47,11 +47,19 @@ This document helps future contributors—human or AI—work consistently within
   - `fix: correct session storage in desktop flow`
   - `docs: update authentication flow diagram`
 
+## Git Workflow
+- **NEVER push directly to main branch**
+- Always create a feature branch: `git checkout -b feat/feature-name` or `git checkout -b fix/bug-name`
+- Commit changes on the feature branch
+- Push feature branch to origin: `git push -u origin feature-branch-name`
+- Create pull request for review before merging to main
+
 ## Workflow Checklist
-1. Sync with `main` and confirm a clean working tree.
-2. Implement changes with attention to the practices above.
-3. Run `npm run build` (and tests when available) before opening a PR.
-4. Update documentation (`README.md`, `docs/`, journals) as necessary.
-5. Summarize modifications succinctly in commits and PR descriptions.
+1. Create feature branch (never work on main)
+2. Sync with `main` and confirm a clean working tree
+3. Implement changes with attention to the practices above
+4. Run `npm run build` (and tests when available) before opening a PR
+5. Update documentation (`README.md`, `docs/`, journals) as necessary
+6. Push to feature branch and create PR
 
 Respect these guidelines to keep the project stable, secure, and transparent. When in doubt, document the question in `docs/Journal/` and surface it for review.
