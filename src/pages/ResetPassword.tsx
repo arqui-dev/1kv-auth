@@ -1,6 +1,7 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../supabaseClient";
+import { PASSWORD_RULES, getPasswordIssues } from "../utils/passwordRules";
 
 type StatusMessage = {
   type: "idle" | "loading" | "success" | "error";
@@ -12,6 +13,20 @@ const ResetPasswordPage = () => {
   const [newPassword, setNewPassword] = useState("");
   const [status, setStatus] = useState<StatusMessage>({ type: "idle" });
   const [isRecoveryFlow, setIsRecoveryFlow] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const passwordIssues = useMemo(() => getPasswordIssues(newPassword), [newPassword]);
+  const confirmPasswordMismatch = useMemo(
+    () => confirmPassword.length > 0 && newPassword !== confirmPassword,
+    [newPassword, confirmPassword]
+  );
+  const canSaveNewPassword =
+    Boolean(
+      newPassword &&
+        confirmPassword &&
+        passwordIssues.length === 0 &&
+        !confirmPasswordMismatch
+    ) && status.type !== "loading";
 
   useEffect(() => {
     const hash = window.location.hash.replace("#", "");
@@ -49,6 +64,22 @@ const ResetPasswordPage = () => {
     event.preventDefault();
     setStatus({ type: "loading", text: "Atualizando senha..." });
 
+    if (passwordIssues.length > 0) {
+      setStatus({
+        type: "error",
+        text: `A senha deve conter ${passwordIssues.join(", ")}.`
+      });
+      return;
+    }
+
+    if (confirmPasswordMismatch) {
+      setStatus({
+        type: "error",
+        text: "As senhas não coincidem."
+      });
+      return;
+    }
+
     const {
       data: { session }
     } = await supabase.auth.getSession();
@@ -75,6 +106,7 @@ const ResetPasswordPage = () => {
       text: "Senha alterada com sucesso! Agora você já pode fazer login novamente."
     });
     setNewPassword("");
+    setConfirmPassword("");
     setIsRecoveryFlow(false);
   };
 
@@ -116,7 +148,7 @@ const ResetPasswordPage = () => {
         {isRecoveryFlow && (
           <form className="space-y-4 border-t border-slate-200 pt-6" onSubmit={handlePasswordUpdate}>
             <p className="text-sm text-slate-600">
-              Recebemos o token de recuperação. Informe uma nova senha abaixo.
+              Recebemos o token de recuperação. Informe e confirme uma nova senha abaixo.
             </p>
             <label className="block">
               <span className="text-sm font-medium text-slate-700">Nova senha</span>
@@ -126,15 +158,47 @@ const ResetPasswordPage = () => {
                 placeholder="Digite uma nova senha segura"
                 value={newPassword}
                 onChange={(event) => setNewPassword(event.target.value)}
-                minLength={6}
                 required
               />
             </label>
+            <label className="block">
+              <span className="text-sm font-medium text-slate-700">Confirmar senha</span>
+              <input
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                type="password"
+                placeholder="Repita a nova senha"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                required
+              />
+              {confirmPassword.length > 0 && (
+                <p className={`mt-1 text-xs ${confirmPasswordMismatch ? "text-red-600" : "text-emerald-600"}`}>
+                  {confirmPasswordMismatch ? "As senhas não coincidem." : "As senhas conferem."}
+                </p>
+              )}
+            </label>
+
+            <ul className="space-y-1 rounded-lg bg-slate-50 p-3 text-xs">
+              {PASSWORD_RULES.map((rule) => {
+                const isMet = rule.test(newPassword);
+                return (
+                  <li
+                    key={rule.id}
+                    className={`flex items-center gap-2 ${isMet ? "text-emerald-600" : "text-slate-500"}`}
+                  >
+                    <span
+                      className={`h-2 w-2 rounded-full ${isMet ? "bg-emerald-500" : "bg-slate-300"}`}
+                    />
+                    {rule.label}
+                  </li>
+                );
+              })}
+            </ul>
 
             <button
               className="w-full rounded-lg bg-emerald-600 px-4 py-2 text-white font-semibold transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-70"
               type="submit"
-              disabled={status.type === "loading"}
+              disabled={!canSaveNewPassword}
             >
               {status.type === "loading" ? "Salvando..." : "Alterar senha"}
             </button>

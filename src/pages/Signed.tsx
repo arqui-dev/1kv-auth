@@ -61,6 +61,19 @@ const SignedPage = () => {
     return new Date(profile.license_valid_until) >= new Date();
   }, [profile]);
 
+  const licenseStatusText = useMemo(
+    () => (licenseIsActive ? "Licença ativa" : "Sem licença ativa"),
+    [licenseIsActive]
+  );
+
+  const userInitials = useMemo(() => {
+    if (!profile) return "1K";
+    const first = profile.first_name?.[0] ?? "";
+    const last = profile.last_name?.[0] ?? "";
+    const initials = `${first}${last}`.trim().toUpperCase();
+    return initials || "1K";
+  }, [profile]);
+
   const splitPhoneValue = (phoneValue: string | null) => {
     const detectedCountry = detectCountryByDialCode(phoneValue);
     if (!phoneValue) {
@@ -245,52 +258,56 @@ const SignedPage = () => {
   return (
     <div className="min-h-screen bg-slate-100 px-4 py-10">
       <div className="mx-auto w-full max-w-2xl rounded-xl bg-white p-8 shadow-lg">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Informações do usuário</h1>
-            <p className="text-sm text-slate-600">Veja seus dados e o status da licença.</p>
+            <h1 className="text-2xl font-semibold text-slate-900">Área autenticada</h1>
+            <p className="text-sm text-slate-600">Confira seus dados pessoais e o status da sua licença.</p>
           </div>
           <button
             className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
             onClick={loadProfile}
             disabled={status.type === "loading"}
           >
-            Atualizar
-          </button>
-        </div>
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-slate-500">Mantenha seus dados atualizados para suporte rápido.</p>
-          <button
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
-            onClick={handleEditToggle}
-            disabled={status.type === "loading"}
-          >
-            Editar informações
+            Atualizar dados
           </button>
         </div>
 
-        <dl className="mt-8 grid grid-cols-1 gap-6 text-sm text-slate-700 md:grid-cols-2">
-          <div className="rounded-lg border border-slate-200 p-4">
-            <dt className="font-medium text-slate-500">Nome</dt>
-            <dd className="text-base text-slate-900">{formattedName}</dd>
+        <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50/70 p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-900 text-xl font-semibold text-white">
+                {userInitials}
+              </div>
+              <div>
+                <p className="text-lg font-semibold text-slate-900">{formattedName}</p>
+                <p className="text-sm text-slate-600">{userEmail || "—"}</p>
+                <p className={`text-sm ${licenseIsActive ? "text-emerald-600" : "text-red-600"}`}>{licenseStatusText}</p>
+              </div>
+            </div>
+            <button
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
+              onClick={handleEditToggle}
+              disabled={status.type === "loading"}
+            >
+              Alterar cadastro
+            </button>
           </div>
-          <div className="rounded-lg border border-slate-200 p-4">
-            <dt className="font-medium text-slate-500">Email</dt>
-            <dd className="text-base text-slate-900 break-all">{userEmail || "—"}</dd>
-          </div>
-          <div className="rounded-lg border border-slate-200 p-4">
-            <dt className="font-medium text-slate-500">Data de nascimento</dt>
-            <dd className="text-base text-slate-900">{formattedBirthdate}</dd>
-          </div>
-          <div className="rounded-lg border border-slate-200 p-4">
-            <dt className="font-medium text-slate-500">Licença válida até</dt>
-            <dd className="text-base text-slate-900">{formattedLicense}</dd>
-          </div>
-          <div className="rounded-lg border border-slate-200 p-4">
-            <dt className="font-medium text-slate-500">Telefone</dt>
-            <dd className="text-base text-slate-900">{formattedPhone}</dd>
-          </div>
-        </dl>
+
+          <dl className="mt-6 grid grid-cols-1 gap-4 text-sm text-slate-700 sm:grid-cols-3">
+            <div className="rounded-lg border border-slate-200 bg-white p-4">
+              <dt className="font-medium text-slate-500">Data de nascimento</dt>
+              <dd className="text-base text-slate-900">{formattedBirthdate}</dd>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-white p-4">
+              <dt className="font-medium text-slate-500">Telefone</dt>
+              <dd className="text-base text-slate-900">{formattedPhone}</dd>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-white p-4">
+              <dt className="font-medium text-slate-500">Licença válida até</dt>
+              <dd className="text-base text-slate-900">{formattedLicense}</dd>
+            </div>
+          </dl>
+        </div>
 
         <div className="mt-8 rounded-lg border border-slate-200 p-4">
           <p className="text-sm font-medium text-slate-500">Status de acesso</p>
