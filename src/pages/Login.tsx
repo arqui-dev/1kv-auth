@@ -17,10 +17,16 @@ const LoginPage = () => {
   const redirectUri = queryParams.get("redirect_uri");
   const handshakeState = queryParams.get("state");
   const isDesktopFlow = Boolean(redirectUri && handshakeState);
+  console.info("[DesktopAuth] Query params parsed", {
+    isDesktopFlow,
+    redirectUri,
+    hasState: Boolean(handshakeState)
+  });
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setStatus({ type: "loading", text: "Entrando..." });
+    console.info("[DesktopAuth] Form submitted. Desktop flow?", isDesktopFlow);
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -28,13 +34,19 @@ const LoginPage = () => {
     });
 
     if (error) {
+      console.error("[DesktopAuth] Supabase signInWithPassword failed", error);
       setStatus({ type: "error", text: error.message });
       return;
     }
+    console.info("[DesktopAuth] Supabase signInWithPassword succeeded", {
+      userId: data.user?.id,
+      userEmail: data.user?.email
+    });
 
     if (redirectUri && handshakeState) {
       const session = data.session;
       if (!session) {
+        console.error("[DesktopAuth] Desktop flow detected but session missing");
         setStatus({
           type: "error",
           text: "Não foi possível recuperar a sessão do Supabase. Tente novamente."
@@ -56,6 +68,12 @@ const LoginPage = () => {
         token_type: session.token_type,
         user: session.user
       };
+      console.info("[DesktopAuth] Prepared payload for desktop app", {
+        redirectUri,
+        state: handshakeState,
+        userEmail: session.user?.email,
+        expires_at: session.expires_at
+      });
 
       try {
         const response = await fetch(redirectUri, {
@@ -68,9 +86,14 @@ const LoginPage = () => {
 
         if (!response.ok) {
           const errorBody = await response.text();
+          console.error("[DesktopAuth] Desktop callback returned non-OK", {
+            status: response.status,
+            errorBody
+          });
           throw new Error(errorBody || "Falha ao entregar sessão para o aplicativo.");
         }
 
+        console.info("[DesktopAuth] Session successfully delivered to desktop");
         setStatus({
           type: "success",
           text: "Login concluído. Retorne ao aplicativo desktop para continuar."
@@ -83,6 +106,7 @@ const LoginPage = () => {
         }, 1500);
         return;
       } catch (handshakeError) {
+        console.error("[DesktopAuth] Error delivering session to desktop", handshakeError);
         const message =
           handshakeError instanceof Error
             ? handshakeError.message
@@ -98,6 +122,8 @@ const LoginPage = () => {
     setTimeout(() => {
       navigate("/success");
     }, 1500);
+    console.info("[DesktopAuth] Web-only login completed.");
+    navigate("/signed");
   };
 
   return (
@@ -142,6 +168,11 @@ const LoginPage = () => {
             />
           </label>
 
+          <div className="text-right">
+            <Link className="text-sm text-blue-600 hover:underline" to="/reset-password">
+              Esqueceu sua senha?
+            </Link>
+          </div>
           <button
             className="w-full rounded-lg bg-blue-600 px-4 py-2 text-white font-semibold transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-70"
             type="submit"
