@@ -1,5 +1,6 @@
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { AuthLayout } from "../components/layout/AuthLayout";
 import { COUNTRY_OPTIONS, detectCountryByDialCode, getCountryByCode } from "../constants/countryOptions";
 import { supabase } from "../supabaseClient";
 
@@ -256,15 +257,16 @@ const SignedPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 px-4 py-10">
-      <div className="mx-auto w-full max-w-2xl rounded-xl bg-white p-8 shadow-lg">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
+    <AuthLayout contentWidth="wide">
+      <div className="space-y-8">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Área autenticada</h1>
-            <p className="text-sm text-slate-600">Confira seus dados pessoais e o status da sua licença.</p>
+            <p className="text-xs uppercase tracking-[0.35em] text-orange-300/80">Área autenticada</p>
+            <h1 className="text-2xl font-semibold text-white">Perfil e licença</h1>
+            <p className="text-sm text-slate-300">Confira seus dados pessoais e o status da sua licença.</p>
           </div>
           <button
-            className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
+            className="rounded-2xl border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10 disabled:opacity-60"
             onClick={loadProfile}
             disabled={status.type === "loading"}
           >
@@ -272,20 +274,20 @@ const SignedPage = () => {
           </button>
         </div>
 
-        <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50/70 p-6">
+        <div className="rounded-3xl border border-white/10 bg-slate-950/70 p-6 shadow-lg">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-900 text-xl font-semibold text-white">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-amber-300 text-xl font-semibold text-slate-950">
                 {userInitials}
               </div>
               <div>
-                <p className="text-lg font-semibold text-slate-900">{formattedName}</p>
-                <p className="text-sm text-slate-600">{userEmail || "—"}</p>
-                <p className={`text-sm ${licenseIsActive ? "text-emerald-600" : "text-red-600"}`}>{licenseStatusText}</p>
+                <p className="text-lg font-semibold text-white">{formattedName}</p>
+                <p className="text-sm text-slate-300">{userEmail || "—"}</p>
+                <p className={`text-sm ${licenseIsActive ? "text-emerald-300" : "text-red-400"}`}>{licenseStatusText}</p>
               </div>
             </div>
             <button
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
+              className="rounded-2xl bg-gradient-to-r from-orange-500 via-orange-400 to-amber-300 px-4 py-2 text-sm font-semibold text-slate-950 shadow-lg transition hover:scale-[1.01] disabled:opacity-60"
               onClick={handleEditToggle}
               disabled={status.type === "loading"}
             >
@@ -293,77 +295,73 @@ const SignedPage = () => {
             </button>
           </div>
 
-          <dl className="mt-6 grid grid-cols-1 gap-4 text-sm text-slate-700 sm:grid-cols-3">
-            <div className="rounded-lg border border-slate-200 bg-white p-4">
-              <dt className="font-medium text-slate-500">Data de nascimento</dt>
-              <dd className="text-base text-slate-900">{formattedBirthdate}</dd>
+          <dl className="mt-6 grid grid-cols-1 gap-4 text-sm text-slate-300 sm:grid-cols-3">
+            <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4">
+              <dt className="font-medium text-slate-400">Data de nascimento</dt>
+              <dd className="text-base text-white">{formattedBirthdate}</dd>
             </div>
-            <div className="rounded-lg border border-slate-200 bg-white p-4">
-              <dt className="font-medium text-slate-500">Telefone</dt>
-              <dd className="text-base text-slate-900">{formattedPhone}</dd>
+            <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4">
+              <dt className="font-medium text-slate-400">Telefone</dt>
+              <dd className="text-base text-white">{formattedPhone}</dd>
             </div>
-            <div className="rounded-lg border border-slate-200 bg-white p-4">
-              <dt className="font-medium text-slate-500">Licença válida até</dt>
-              <dd className="text-base text-slate-900">{formattedLicense}</dd>
+            <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4">
+              <dt className="font-medium text-slate-400">Licença válida até</dt>
+              <dd className="text-base text-white">{formattedLicense}</dd>
             </div>
           </dl>
         </div>
 
-        <div className="mt-8 rounded-lg border border-slate-200 p-4">
-          <p className="text-sm font-medium text-slate-500">Status de acesso</p>
-          <p
-            className={`mt-2 text-lg font-semibold ${
-              licenseIsActive ? "text-emerald-600" : "text-red-600"
-            }`}
-          >
+        <div className="rounded-3xl border border-white/10 bg-slate-950/70 p-5">
+          <p className="text-sm font-medium text-slate-300">Status de acesso</p>
+          <p className={`mt-2 text-lg font-semibold ${licenseIsActive ? "text-emerald-300" : "text-red-400"}`}>
             {licenseIsActive ? "Licença ativa" : "Sem licença ativa"}
           </p>
           {profile?.license_valid_until && (
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-slate-400">
               Vigência até {formattedLicense}. {licenseIsActive ? "" : "Renove para continuar."}
             </p>
           )}
         </div>
 
         {isEditing && (
-          <form className="mt-8 space-y-4 rounded-xl border border-blue-100 bg-blue-50/50 p-6" onSubmit={handleProfileSave}>
-            <h2 className="text-lg font-semibold text-slate-900">Atualizar dados pessoais</h2>
+          <form className="space-y-4 rounded-3xl border border-white/10 bg-slate-950/70 p-6 shadow-lg" onSubmit={handleProfileSave}>
+            <h2 className="text-lg font-semibold text-white">Atualizar dados pessoais</h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <label className="block text-sm font-medium text-slate-600">
+              <label className="block text-sm font-medium text-slate-300">
                 Nome
                 <input
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  className="mt-1 w-full rounded-2xl border border-white/10 bg-slate-900/60 px-3 py-3 text-white focus:border-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-300/40"
                   type="text"
                   value={formValues.firstName}
                   onChange={handleFormChange("firstName")}
                   required
                 />
               </label>
-              <label className="block text-sm font-medium text-slate-600">
+              <label className="block text-sm font-medium text-slate-300">
                 Sobrenome
                 <input
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  className="mt-1 w-full rounded-2xl border border-white/10 bg-slate-900/60 px-3 py-3 text-white focus:border-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-300/40"
                   type="text"
                   value={formValues.lastName}
                   onChange={handleFormChange("lastName")}
                   required
                 />
               </label>
-              <label className="block text-sm font-medium text-slate-600">
+              <label className="block text-sm font-medium text-slate-300">
                 Data de nascimento
                 <input
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  className="mt-1 w-full rounded-2xl border border-white/10 bg-slate-900/60 px-3 py-3 text-white focus:border-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-300/40"
                   type="date"
                   value={formValues.birthdate}
                   onChange={handleFormChange("birthdate")}
                   required
                 />
               </label>
-              <label className="block text-sm font-medium text-slate-600">
+              <label className="block text-sm font-medium text-slate-300">
                 Telefone (opcional)
                 <div className="mt-1 grid grid-cols-[140px_1fr] gap-3">
                   <select
-                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    className="rounded-2xl border border-white/10 bg-slate-900/60 px-3 py-3 text-white focus:border-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-300/40"
                     value={formValues.phoneCountry}
                     onChange={handleCountryChange}
                   >
@@ -374,7 +372,7 @@ const SignedPage = () => {
                     ))}
                   </select>
                   <input
-                    className="rounded-lg border border-slate-300 px-3 py-2 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    className="rounded-2xl border border-white/10 bg-slate-900/60 px-3 py-3 text-white focus:border-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-300/40"
                     type="tel"
                     value={formValues.phone}
                     onChange={handleFormChange("phone")}
@@ -383,17 +381,17 @@ const SignedPage = () => {
                 </div>
               </label>
             </div>
-            <div className="flex flex-col gap-3 text-sm font-semibold sm:flex-row sm:justify-end">
+            <div className="flex flex-col gap-3 text-sm font-semibold text-white sm:flex-row sm:justify-end">
               <button
                 type="button"
-                className="rounded-lg border border-slate-300 px-4 py-2 text-slate-700 hover:bg-white"
+                className="rounded-2xl border border-white/20 px-4 py-2 text-slate-200 hover:bg-white/5"
                 onClick={handleEditCancel}
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                className="rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 disabled:opacity-60"
+                className="rounded-2xl bg-emerald-500 px-4 py-2 text-slate-950 hover:bg-emerald-400 disabled:opacity-60"
                 disabled={status.type === "loading"}
               >
                 Salvar alterações
@@ -402,12 +400,12 @@ const SignedPage = () => {
           </form>
         )}
 
-        <div className="mt-10 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <Link className="text-sm text-blue-600 hover:underline" to="/login">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <Link className="text-sm font-semibold text-orange-200 hover:text-orange-100" to="/login">
             Voltar para o login
           </Link>
           <button
-            className="w-full rounded-lg bg-slate-900 px-4 py-2 text-white font-semibold transition hover:bg-slate-800 md:w-auto"
+            className="w-full rounded-2xl border border-white/15 px-4 py-2 text-white font-semibold transition hover:bg-white/10 md:w-auto"
             onClick={handleLogout}
             disabled={status.type === "loading"}
           >
@@ -417,19 +415,19 @@ const SignedPage = () => {
 
         {status.type !== "idle" && (
           <p
-            className={`mt-6 text-sm ${
+            className={`text-sm ${
               status.type === "error"
-                ? "text-red-600"
+                ? "text-red-400"
                 : status.type === "success"
-                ? "text-green-600"
-                : "text-slate-600"
+                ? "text-emerald-300"
+                : "text-orange-200"
             }`}
           >
             {status.text}
           </p>
         )}
       </div>
-    </div>
+    </AuthLayout>
   );
 };
 

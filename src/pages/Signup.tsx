@@ -1,5 +1,6 @@
 import { FormEvent, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { AuthLayout } from "../components/layout/AuthLayout";
 import { COUNTRY_OPTIONS, getCountryByCode } from "../constants/countryOptions";
 import { supabase } from "../supabaseClient";
 import { PASSWORD_RULES, getPasswordIssues } from "../utils/passwordRules";
@@ -10,6 +11,11 @@ type StatusMessage = {
 };
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const inputClasses =
+  "mt-1 w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-300/40 transition";
+const selectClasses =
+  "mt-1 w-full rounded-2xl border border-white/10 bg-slate-900/60 px-3 py-3 text-white focus:border-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-300/40";
 
 const SignupPage = () => {
   const [email, setEmail] = useState("");
@@ -146,9 +152,11 @@ const SignupPage = () => {
       return;
     }
 
+    console.info("[signup] created user", authData.user?.id);
+
     setStatus({
       type: "success",
-      text: "Conta criada! Verifique seu email para confirmar o cadastro."
+      text: "Conta criada! Verifique seu email e fale com nosso time no WhatsApp para ativar o acesso."
     });
 
     setFirstName("");
@@ -162,21 +170,24 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100 px-4">
-      <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-lg">
-        <h1 className="text-2xl font-semibold text-slate-900">Cadastrar</h1>
-        <p className="mt-2 text-sm text-slate-600">
-          Já possui conta?{" "}
-          <Link className="text-blue-600 hover:underline" to="/login">
-            Entre
-          </Link>
-        </p>
+    <AuthLayout>
+      <div className="space-y-6">
+        <div>
+          <p className="text-xs uppercase tracking-[0.35em] text-orange-300/80">Solicitar acesso</p>
+          <h1 className="text-3xl font-semibold text-white">Cadastrar</h1>
+          <p className="mt-2 text-sm text-slate-300">
+            Já possui conta? {""}
+            <Link className="text-orange-200 hover:text-orange-100" to="/login">
+              Entre
+            </Link>
+          </p>
+        </div>
 
-        <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-5" onSubmit={handleSubmit}>
           <label className="block">
-            <span className="text-sm font-medium text-slate-700">Nome</span>
+            <span className="text-sm font-medium text-slate-200">Nome</span>
             <input
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              className={inputClasses}
               type="text"
               placeholder="Seu nome"
               value={firstName}
@@ -186,9 +197,9 @@ const SignupPage = () => {
           </label>
 
           <label className="block">
-            <span className="text-sm font-medium text-slate-700">Sobrenome</span>
+            <span className="text-sm font-medium text-slate-200">Sobrenome</span>
             <input
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              className={inputClasses}
               type="text"
               placeholder="Seu sobrenome"
               value={lastName}
@@ -198,9 +209,9 @@ const SignupPage = () => {
           </label>
 
           <label className="block">
-            <span className="text-sm font-medium text-slate-700">Data de nascimento</span>
+            <span className="text-sm font-medium text-slate-200">Data de nascimento</span>
             <input
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              className={inputClasses}
               type="date"
               value={birthdate}
               onChange={(event) => setBirthdate(event.target.value)}
@@ -208,126 +219,109 @@ const SignupPage = () => {
             />
           </label>
 
-          <label className="block">
-            <span className="text-sm font-medium text-slate-700">Email</span>
-            <input
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-              type="email"
-              placeholder="seu@email.com"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          required
-        />
-        {email.length > 0 && (
-          <p className={`mt-1 text-xs ${emailIsValid ? "text-emerald-600" : "text-red-600"}`}>
-            {emailIsValid ? "Formato de email válido." : "Formato de email inválido."}
-          </p>
-        )}
-      </label>
+          <div className="grid grid-cols-3 gap-3">
+            <label className="col-span-1">
+              <span className="text-sm font-medium text-slate-200">País</span>
+              <select value={phoneCountry} onChange={(event) => setPhoneCountry(event.target.value)} className={selectClasses}>
+                {COUNTRY_OPTIONS.map((country) => (
+                  <option key={country.code} value={country.code}>
+                    {country.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="col-span-2">
+              <span className="text-sm font-medium text-slate-200">Telefone</span>
+              <input
+                className={inputClasses}
+                type="tel"
+                placeholder="(apenas números)"
+                value={phone}
+                onChange={(event) => setPhone(event.target.value)}
+              />
+            </label>
+          </div>
+          {!phoneValidation.isValid && phone.length > 0 && <p className="text-sm text-red-400">{phoneValidation.message}</p>}
 
           <label className="block">
-            <span className="text-sm font-medium text-slate-700">Senha</span>
+            <span className="text-sm font-medium text-slate-200">Email</span>
             <input
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              className={inputClasses}
+              type="email"
+              placeholder="seu@email.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-sm font-medium text-slate-200">Senha</span>
+            <input
+              className={inputClasses}
               type="password"
-              placeholder="Crie uma senha segura"
+              placeholder="Sua senha"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
             />
-            <ul className="mt-2 space-y-1 text-xs">
+          </label>
+
+          <div className="rounded-2xl border border-white/5 bg-slate-900/50 p-4 text-xs text-slate-300">
+            <p className="font-semibold mb-2 text-white">Sua senha deve conter:</p>
+            <ul className="space-y-1">
               {PASSWORD_RULES.map((rule) => {
-                const isMet = rule.test(password);
+                const isMet = !passwordIssues.includes(rule.label);
                 return (
-                  <li
-                    key={rule.id}
-                    className={`flex items-center gap-2 ${isMet ? "text-emerald-600" : "text-slate-500"}`}
-                  >
-                    <span
-                      className={`h-2.5 w-2.5 rounded-full ${isMet ? "bg-emerald-500" : "bg-slate-300"}`}
-                    />
-                    {rule.label}
+                  <li key={rule.id} className="flex items-center gap-2">
+                    <span className={`h-2.5 w-2.5 rounded-full ${isMet ? "bg-emerald-400" : "bg-slate-600"}`} />
+                    <span className={isMet ? "text-emerald-400" : "text-slate-400"}>{rule.label}</span>
                   </li>
                 );
               })}
             </ul>
-          </label>
+          </div>
 
           <label className="block">
-            <span className="text-sm font-medium text-slate-700">Confirmar senha</span>
+            <span className="text-sm font-medium text-slate-200">Confirmar senha</span>
             <input
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              className={inputClasses}
               type="password"
-              placeholder="Repita a senha"
+              placeholder="Repita sua senha"
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
               required
             />
-            {confirmPassword.length > 0 && (
-              <p className={`mt-1 text-xs ${confirmPasswordMismatch ? "text-red-600" : "text-emerald-600"}`}>
-                {confirmPasswordMismatch ? "As senhas não coincidem." : "As senhas conferem."}
-              </p>
-            )}
           </label>
-
-          <label className="block">
-            <span className="text-sm font-medium text-slate-700">Telefone (opcional)</span>
-            <div className="mt-1 grid grid-cols-[140px_1fr] gap-3">
-              <select
-                className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                value={phoneCountry}
-                onChange={(event) => setPhoneCountry(event.target.value)}
-              >
-                {COUNTRY_OPTIONS.map((option) => (
-                  <option key={option.code} value={option.code}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <input
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                type="tel"
-                placeholder="11999990000"
-                value={phone}
-                onChange={(event) => setPhone(event.target.value.replace(/[^\d]/g, ""))}
-              />
-            </div>
-            {phone.length > 0 && (
-              <p className={`mt-1 text-xs ${phoneValidation.isValid ? "text-emerald-600" : "text-red-600"}`}>
-                {phoneValidation.isValid
-                  ? "Formato de telefone válido."
-                  : phoneValidation.message || "Telefone inválido."}
-              </p>
-            )}
-          </label>
+          {confirmPasswordMismatch && <p className="text-sm text-red-400">As senhas precisam ser iguais.</p>}
 
           <button
-            className="w-full rounded-lg bg-blue-600 px-4 py-2 text-white font-semibold transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-70"
+            className="w-full rounded-2xl bg-gradient-to-r from-orange-500 via-orange-400 to-amber-300 px-4 py-3 text-slate-950 font-semibold shadow-lg transition hover:scale-[1.01] focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 disabled:cursor-not-allowed disabled:opacity-60"
             type="submit"
             disabled={!canSubmit}
           >
-            {status.type === "loading" ? "Cadastrando..." : "Cadastrar"}
+            {status.type === "loading" ? "Criando conta..." : "Cadastrar"}
           </button>
-          {!canSubmit && blockingReason && (
-            <p className="text-xs font-medium text-red-600">{blockingReason}</p>
-          )}
         </form>
+
+        {blockingReason && <p className="text-sm text-orange-200">{blockingReason}</p>}
 
         {status.type !== "idle" && (
           <p
-            className={`mt-4 text-sm ${
+            className={`text-sm ${
               status.type === "error"
-                ? "text-red-600"
+                ? "text-red-400"
                 : status.type === "success"
-                ? "text-green-600"
-                : "text-slate-600"
+                ? "text-emerald-300"
+                : "text-orange-200"
             }`}
           >
             {status.text}
           </p>
         )}
       </div>
-    </div>
+    </AuthLayout>
   );
 };
 

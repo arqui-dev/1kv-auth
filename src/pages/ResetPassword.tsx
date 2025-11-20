@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { AuthLayout } from "../components/layout/AuthLayout";
 import { supabase } from "../supabaseClient";
 import { PASSWORD_RULES, getPasswordIssues } from "../utils/passwordRules";
 
@@ -7,6 +8,9 @@ type StatusMessage = {
   type: "idle" | "loading" | "success" | "error";
   text?: string;
 };
+
+const inputClasses =
+  "mt-1 w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-300/40 transition";
 
 const ResetPasswordPage = () => {
   const [email, setEmail] = useState("");
@@ -92,9 +96,7 @@ const ResetPasswordPage = () => {
       return;
     }
 
-    const { error } = await supabase.auth.updateUser({
-      password: newPassword
-    });
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
 
     if (error) {
       setStatus({ type: "error", text: error.message });
@@ -111,13 +113,14 @@ const ResetPasswordPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100 px-4">
-      <div className="w-full max-w-md space-y-8 rounded-xl bg-white p-8 shadow-lg">
+    <AuthLayout>
+      <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Recuperar senha</h1>
-          <p className="mt-2 text-sm text-slate-600">
-            Já lembrou a senha?{" "}
-            <Link className="text-blue-600 hover:underline" to="/login">
+          <p className="text-xs uppercase tracking-[0.35em] text-orange-300/80">Recuperar acesso</p>
+          <h1 className="text-3xl font-semibold text-white">Recuperar senha</h1>
+          <p className="mt-2 text-sm text-slate-300">
+            Já lembrou a senha? {""}
+            <Link className="text-orange-200 hover:text-orange-100" to="/login">
               Voltar para o login
             </Link>
           </p>
@@ -125,9 +128,9 @@ const ResetPasswordPage = () => {
 
         <form className="space-y-4" onSubmit={requestResetLink}>
           <label className="block">
-            <span className="text-sm font-medium text-slate-700">Email cadastrado</span>
+            <span className="text-sm font-medium text-slate-200">Email cadastrado</span>
             <input
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              className={inputClasses}
               type="email"
               placeholder="seu@email.com"
               value={email}
@@ -137,7 +140,7 @@ const ResetPasswordPage = () => {
           </label>
 
           <button
-            className="w-full rounded-lg bg-blue-600 px-4 py-2 text-white font-semibold transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-70"
+            className="w-full rounded-2xl bg-gradient-to-r from-orange-500 via-orange-400 to-amber-300 px-4 py-3 text-slate-950 font-semibold shadow-lg transition hover:scale-[1.01] focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 disabled:cursor-not-allowed disabled:opacity-60"
             type="submit"
             disabled={status.type === "loading"}
           >
@@ -146,14 +149,14 @@ const ResetPasswordPage = () => {
         </form>
 
         {isRecoveryFlow && (
-          <form className="space-y-4 border-t border-slate-200 pt-6" onSubmit={handlePasswordUpdate}>
-            <p className="text-sm text-slate-600">
+          <form className="space-y-4 border-t border-white/5 pt-6" onSubmit={handlePasswordUpdate}>
+            <p className="text-sm text-slate-300">
               Recebemos o token de recuperação. Informe e confirme uma nova senha abaixo.
             </p>
             <label className="block">
-              <span className="text-sm font-medium text-slate-700">Nova senha</span>
+              <span className="text-sm font-medium text-slate-200">Nova senha</span>
               <input
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                className={inputClasses}
                 type="password"
                 placeholder="Digite uma nova senha segura"
                 value={newPassword}
@@ -162,9 +165,9 @@ const ResetPasswordPage = () => {
               />
             </label>
             <label className="block">
-              <span className="text-sm font-medium text-slate-700">Confirmar senha</span>
+              <span className="text-sm font-medium text-slate-200">Confirmar senha</span>
               <input
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                className={inputClasses}
                 type="password"
                 placeholder="Repita a nova senha"
                 value={confirmPassword}
@@ -172,23 +175,21 @@ const ResetPasswordPage = () => {
                 required
               />
               {confirmPassword.length > 0 && (
-                <p className={`mt-1 text-xs ${confirmPasswordMismatch ? "text-red-600" : "text-emerald-600"}`}>
+                <p className={`mt-1 text-xs ${confirmPasswordMismatch ? "text-red-400" : "text-emerald-300"}`}>
                   {confirmPasswordMismatch ? "As senhas não coincidem." : "As senhas conferem."}
                 </p>
               )}
             </label>
 
-            <ul className="space-y-1 rounded-lg bg-slate-50 p-3 text-xs">
+            <ul className="space-y-1 rounded-2xl border border-white/5 bg-slate-900/50 p-3 text-xs text-slate-300">
               {PASSWORD_RULES.map((rule) => {
                 const isMet = rule.test(newPassword);
                 return (
                   <li
                     key={rule.id}
-                    className={`flex items-center gap-2 ${isMet ? "text-emerald-600" : "text-slate-500"}`}
+                    className={`flex items-center gap-2 ${isMet ? "text-emerald-400" : "text-slate-500"}`}
                   >
-                    <span
-                      className={`h-2 w-2 rounded-full ${isMet ? "bg-emerald-500" : "bg-slate-300"}`}
-                    />
+                    <span className={`h-2 w-2 rounded-full ${isMet ? "bg-emerald-400" : "bg-slate-600"}`} />
                     {rule.label}
                   </li>
                 );
@@ -196,11 +197,11 @@ const ResetPasswordPage = () => {
             </ul>
 
             <button
-              className="w-full rounded-lg bg-emerald-600 px-4 py-2 text-white font-semibold transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-70"
+              className="w-full rounded-2xl bg-gradient-to-r from-orange-500 via-orange-400 to-amber-300 px-4 py-3 text-slate-950 font-semibold shadow-lg transition hover:scale-[1.01] focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 disabled:cursor-not-allowed disabled:opacity-60"
               type="submit"
               disabled={!canSaveNewPassword}
             >
-              {status.type === "loading" ? "Salvando..." : "Alterar senha"}
+              {status.type === "loading" ? "Atualizando senha..." : "Salvar nova senha"}
             </button>
           </form>
         )}
@@ -209,17 +210,17 @@ const ResetPasswordPage = () => {
           <p
             className={`text-sm ${
               status.type === "error"
-                ? "text-red-600"
+                ? "text-red-400"
                 : status.type === "success"
-                ? "text-green-600"
-                : "text-slate-600"
+                ? "text-emerald-300"
+                : "text-orange-200"
             }`}
           >
             {status.text}
           </p>
         )}
       </div>
-    </div>
+    </AuthLayout>
   );
 };
 

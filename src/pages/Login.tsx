@@ -1,5 +1,6 @@
 import { FormEvent, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { AuthLayout } from "../components/layout/AuthLayout";
 import { supabase } from "../supabaseClient";
 
 type StatusMessage = {
@@ -126,28 +127,33 @@ const LoginPage = () => {
     navigate("/signed");
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100 px-4">
-      <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-lg">
-        <h1 className="text-2xl font-semibold text-slate-900">Entrar</h1>
-        <p className="mt-2 text-sm text-slate-600">
-          Ainda não tem conta?{" "}
-          <Link className="text-blue-600 hover:underline" to="/signup">
-            Cadastre-se
-          </Link>
-        </p>
-        {isDesktopFlow && (
-          <p className="mt-2 text-sm text-slate-500">
-            Após a autenticação, a sessão será enviada automaticamente para o
-            aplicativo desktop.
-          </p>
-        )}
+  const inputClasses =
+    "mt-1 w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-300/40 transition";
 
-        <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
+  return (
+    <AuthLayout>
+      <div className="space-y-6">
+        <div>
+          <p className="text-xs uppercase tracking-[0.35em] text-orange-300/80">Acesso seguro</p>
+          <h1 className="text-3xl font-semibold text-white">Entrar</h1>
+          <p className="mt-2 text-sm text-slate-300">
+            Ainda não tem conta?{" "}
+            <Link className="text-orange-300 hover:text-orange-200" to="/signup">
+              Cadastre-se
+            </Link>
+          </p>
+          {isDesktopFlow && (
+            <p className="mt-2 text-sm text-slate-400">
+              Após a autenticação, entregamos sua sessão automaticamente ao aplicativo desktop.
+            </p>
+          )}
+        </div>
+
+        <form className="space-y-5" onSubmit={handleSubmit}>
           <label className="block">
-            <span className="text-sm font-medium text-slate-700">Email</span>
+            <span className="text-sm font-medium text-slate-200">Email</span>
             <input
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              className={inputClasses}
               type="email"
               placeholder="seu@email.com"
               value={email}
@@ -157,9 +163,9 @@ const LoginPage = () => {
           </label>
 
           <label className="block">
-            <span className="text-sm font-medium text-slate-700">Senha</span>
+            <span className="text-sm font-medium text-slate-200">Senha</span>
             <input
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              className={inputClasses}
               type="password"
               placeholder="Sua senha"
               value={password}
@@ -169,12 +175,12 @@ const LoginPage = () => {
           </label>
 
           <div className="text-right">
-            <Link className="text-sm text-blue-600 hover:underline" to="/reset-password">
+            <Link className="text-sm font-semibold text-orange-200 hover:text-orange-100" to="/reset-password">
               Esqueceu sua senha?
             </Link>
           </div>
           <button
-            className="w-full rounded-lg bg-blue-600 px-4 py-2 text-white font-semibold transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-70"
+            className="w-full rounded-2xl bg-gradient-to-r from-orange-500 via-orange-400 to-amber-300 px-4 py-3 text-slate-950 font-semibold shadow-lg transition hover:scale-[1.01] focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 disabled:cursor-not-allowed disabled:opacity-60"
             type="submit"
             disabled={status.type === "loading"}
           >
@@ -184,19 +190,19 @@ const LoginPage = () => {
 
         {status.type !== "idle" && (
           <p
-            className={`mt-4 text-sm ${
+            className={`text-sm ${
               status.type === "error"
-                ? "text-red-600"
+                ? "text-red-400"
                 : status.type === "success"
-                ? "text-green-600"
-                : "text-slate-600"
+                ? "text-emerald-300"
+                : "text-orange-200"
             }`}
           >
             {status.text}
           </p>
         )}
       </div>
-    </div>
+    </AuthLayout>
   );
 };
 
