@@ -6,6 +6,7 @@ import AccessGate from "../components/AccessGate";
 import EmptyStateUpgrade from "../components/EmptyStateUpgrade";
 import { COUNTRY_OPTIONS, detectCountryByDialCode, getCountryByCode } from "../constants/countryOptions";
 import { supabase } from "../supabaseClient";
+import { useUserAccess } from "../hooks/useUserAccess";
 
 type StatusMessage = {
   type: "idle" | "loading" | "success" | "error";
@@ -38,6 +39,7 @@ const SignedPage = () => {
     phoneCountry: COUNTRY_OPTIONS[0].code
   });
   const navigate = useNavigate();
+  const { products, hasAccess: hasVideoAccess, loading: accessLoading } = useUserAccess("1kv_videos");
 
   const formattedName = useMemo(() => {
     if (!profile) return "—";
@@ -49,10 +51,17 @@ const SignedPage = () => {
     return new Date(profile.birthdate).toLocaleDateString("pt-BR");
   }, [profile]);
 
+  const primaryAccess = useMemo(() => products[0], [products]);
+  const licenseUntil = useMemo(
+    () => primaryAccess?.current_period_end || profile?.license_valid_until || null,
+    [primaryAccess, profile]
+  );
+
   const formattedLicense = useMemo(() => {
-    if (!profile?.license_valid_until) return "—";
-    return new Date(profile.license_valid_until).toLocaleDateString("pt-BR");
-  }, [profile]);
+    if (!licenseUntil) return "—";
+    const date = new Date(licenseUntil);
+    return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString("pt-BR");
+  }, [licenseUntil]);
 
   const formattedPhone = useMemo(() => {
     if (!profile?.phone) return "—";
@@ -60,15 +69,15 @@ const SignedPage = () => {
   }, [profile]);
 
   const licenseIsActive = useMemo(() => {
-    if (!profile?.has_access) return false;
-    if (!profile.license_valid_until) return false;
-    return new Date(profile.license_valid_until) >= new Date();
-  }, [profile]);
+    if (hasVideoAccess) return true;
+    if (!licenseUntil) return false;
+    return new Date(licenseUntil) >= new Date();
+  }, [hasVideoAccess, licenseUntil]);
 
-  const licenseStatusText = useMemo(
-    () => (licenseIsActive ? "Licença ativa" : "Sem licença ativa"),
-    [licenseIsActive]
-  );
+  const licenseStatusText = useMemo(() => {
+    if (accessLoading) return "Verificando acesso...";
+    return licenseIsActive ? "Licença ativa" : "Sem licença ativa";
+  }, [accessLoading, licenseIsActive]);
 
   const userInitials = useMemo(() => {
     if (!profile) return "1K";
@@ -286,7 +295,13 @@ const SignedPage = () => {
               <div>
                 <p className="text-lg font-semibold text-white">{formattedName}</p>
                 <p className="text-sm text-slate-300">{userEmail || "—"}</p>
-                <p className={`text-sm ${licenseIsActive ? "text-emerald-300" : "text-red-400"}`}>{licenseStatusText}</p>
+                <p
+                  className={`text-sm ${
+                    accessLoading ? "text-orange-200" : licenseIsActive ? "text-emerald-300" : "text-red-400"
+                  }`}
+                >
+                  {licenseStatusText}
+                </p>
               </div>
             </div>
             <button
@@ -307,19 +322,23 @@ const SignedPage = () => {
               <dt className="font-medium text-slate-400">Telefone</dt>
               <dd className="text-base text-white">{formattedPhone}</dd>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4">
-              <dt className="font-medium text-slate-400">Licença válida até</dt>
-              <dd className="text-base text-white">{formattedLicense}</dd>
-            </div>
+        <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4">
+          <dt className="font-medium text-slate-400">Licença válida até</dt>
+          <dd className="text-base text-white">{formattedLicense}</dd>
+        </div>
           </dl>
         </div>
 
         <div className="rounded-3xl border border-white/10 bg-slate-950/70 p-5">
           <p className="text-sm font-medium text-slate-300">Status de acesso</p>
-          <p className={`mt-2 text-lg font-semibold ${licenseIsActive ? "text-emerald-300" : "text-red-400"}`}>
-            {licenseIsActive ? "Licença ativa" : "Sem licença ativa"}
+          <p
+            className={`mt-2 text-lg font-semibold ${
+              accessLoading ? "text-orange-200" : licenseIsActive ? "text-emerald-300" : "text-red-400"
+            }`}
+          >
+            {licenseStatusText}
           </p>
-          {profile?.license_valid_until && (
+          {formattedLicense !== "—" && (
             <p className="text-sm text-slate-400">
               Vigência até {formattedLicense}. {licenseIsActive ? "" : "Renove para continuar."}
             </p>
