@@ -154,6 +154,40 @@ const SignupPage = () => {
 
     console.info("[signup] created user", authData.user?.id);
 
+    // Persist phone (and other fields) into profiles in case trigger/backfill lags
+    const phoneFormatted = phoneValidation.formatted || null;
+    if (authData.user?.id) {
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({
+          first_name: firstName,
+          last_name: lastName,
+          birthdate,
+          phone: phoneFormatted
+        })
+        .eq("id", authData.user.id);
+
+      if (profileError) {
+        console.warn("[signup] profile update warning", profileError);
+      }
+
+      const { error: metadataError } = await supabase.auth.updateUser({
+        data: {
+          first_name: firstName,
+          last_name: lastName,
+          birthdate,
+          has_access: false,
+          license_valid_until: null,
+          phone: phoneFormatted,
+          phone_country: phoneCountry
+        }
+      });
+
+      if (metadataError) {
+        console.warn("[signup] metadata update warning", metadataError);
+      }
+    }
+
     setStatus({
       type: "success",
       text: "Conta criada! Verifique seu email e fale com nosso time no WhatsApp para ativar o acesso."

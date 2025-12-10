@@ -2,6 +2,21 @@
 
 We now run database changes directly from the Supabase Dashboard. This keeps things simple—no local CLI setup or scripts are required.
 
+Apply in order:
+1. `20241018120000_profiles_table.sql`
+2. `20241018123000_profiles_auto_populate.sql`
+3. `20241018124500_profiles_add_phone.sql`
+4. `20250202090000_access_control.sql`
+5. `20250202090010_seed_products.sql`
+6. `20250303090000_rls_recursion_fix.sql`
+7. `20250303090500_backfill_profiles.sql`
+8. `20250303091500_add_user_foreign_keys.sql`
+
+## Naming convention (ADR-0001)
+- **Pattern:** `YYYYMMDDHHMMSS_description.sql` (UTC timestamp + snake_case description).
+- Keep one pattern only—avoid `001_*.sql`. When touching old files, rename them into the timestamp format.
+- Current files follow this pattern, e.g. `20250202090000_access_control.sql`, `20250202090010_seed_products.sql`.
+
 ## How to Apply the Current Migration
 1. Sign in to https://supabase.com/dashboard and open the project `lnjqfautqugtwzxptjzr`.
 2. Go to **SQL Editor → New query**.

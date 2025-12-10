@@ -1,6 +1,9 @@
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthLayout } from "../components/layout/AuthLayout";
+import SubscriptionStatus from "../components/SubscriptionStatus";
+import AccessGate from "../components/AccessGate";
+import EmptyStateUpgrade from "../components/EmptyStateUpgrade";
 import { COUNTRY_OPTIONS, detectCountryByDialCode, getCountryByCode } from "../constants/countryOptions";
 import { supabase } from "../supabaseClient";
 
@@ -322,6 +325,27 @@ const SignedPage = () => {
             </p>
           )}
         </div>
+
+        <SubscriptionStatus />
+
+        <AccessGate
+          productSlug="1kv_videos"
+          fallback={
+            <EmptyStateUpgrade
+              productSlug="1kv_videos"
+              title="Libere o gerador de vídeos"
+              description="Faça upgrade para executar as automações no desktop. Você pode navegar normalmente, mas a execução fica bloqueada."
+            />
+          }
+        >
+          <div className="rounded-3xl border border-emerald-400/30 bg-emerald-900/20 p-6 text-white shadow-lg">
+            <p className="text-xs uppercase tracking-[0.3em] text-emerald-200/80">Acesso liberado</p>
+            <h3 className="text-2xl font-semibold text-white">Gerador de vídeos habilitado</h3>
+            <p className="mt-2 text-sm text-emerald-100">
+              Sua conta já tem permissão para usar o 1kvideos desktop. Abra o app e continue de onde parou.
+            </p>
+          </div>
+        </AccessGate>
 
         {isEditing && (
           <form className="space-y-4 rounded-3xl border border-white/10 bg-slate-950/70 p-6 shadow-lg" onSubmit={handleProfileSave}>
